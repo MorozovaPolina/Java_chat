@@ -19,10 +19,12 @@ public class Watcher implements Runnable {
                 channel.read(buffer);
                 System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
                 buffer.clear();
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
             }
+            catch (IOException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+
         }
     }
 }

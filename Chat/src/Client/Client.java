@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 
 public class Client {
@@ -33,16 +34,31 @@ public class Client {
                 channel = SocketChannel.open(inetSocketAddress);
                 Thread watcher = new Thread(new Watcher(channel));
                 watcher.start();
-                sendMessage("Подключился пользователь " + name);
+                introduce();
 
                 while (true) {
                     try {
                         if (bufferedReader.ready()) {
-                            String message = name + ": " + bufferedReader.readLine();
-                            if(!message.equals(name+": ")) {
-                                //System.out.print(message);
-                                sendMessage(message);
+                            String command = bufferedReader.readLine();
+                            switch (command){
+                                case "quit":
+                                    quit();
+                                    watcher.interrupt();
+                                    return;
+
+                                case "online":
+                                        getOnline();
+                                    break;
+                                default:
+                                    String message = name + ": " + command;
+                                    if(!message.equals(name+": ")) {
+                                        //System.out.print(message);
+                                        sendMessage(message);
+                                    }
+                                    break;
+
                             }
+
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -60,15 +76,37 @@ public class Client {
 
     }
     public void sendMessage(String message){
+        send(3, message.length(), message.getBytes());
+    }
+
+    public void introduce(){
+        send(1, name.length(), name.getBytes());
+    }
+
+    public void quit(){
+        send(5);
+    }
+
+    private void getOnline(){
+        send(6);
+    }
+
+    public void send(int command){
+        send(command, 0, new byte[0]);
+    }
+
+    public void send (int command, int length, byte[] data){
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        buffer.putInt(command);
+        buffer.putInt(length);
+        buffer.put(data);
+        buffer.flip();
         try {
-            ByteBuffer buffer = ByteBuffer.allocate(74);
-            buffer.put(message.getBytes());
-            buffer.flip();
             channel.write(buffer);
-            buffer.clear();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
+        buffer.clear();
 
     }
 }
