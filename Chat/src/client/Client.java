@@ -39,7 +39,8 @@ public class Client {
                     try {
                         if (bufferedReader.ready()) {
                             String command = bufferedReader.readLine();
-                            switch (command) {
+                            String commandType = command.split(" ")[0];
+                            switch (commandType) {
                                 case "quit":
                                     quit();
                                     watcher.interrupt();
@@ -52,6 +53,7 @@ public class Client {
                                     break;
                                 case "upload":
                                     String fileName = command.split(" ")[1];
+                                    System.out.println("-");
                                     uploadFile(fileName, inetSocketAddress, name);
                                     break;
                                 case "download":
