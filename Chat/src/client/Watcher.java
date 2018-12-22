@@ -1,9 +1,10 @@
-package Client;
+package client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class Watcher implements Runnable {
     SocketChannel channel;
@@ -19,6 +20,7 @@ public class Watcher implements Runnable {
                 channel.read(buffer);
                 System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
                 buffer.clear();
+                Arrays.fill(buffer.array(), (byte) 0);
             }
             catch (IOException e) {
                 Thread.currentThread().interrupt();

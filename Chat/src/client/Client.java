@@ -1,4 +1,4 @@
-package Client;
+package client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,7 +7,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 
 public class Client {
@@ -40,18 +39,27 @@ public class Client {
                     try {
                         if (bufferedReader.ready()) {
                             String command = bufferedReader.readLine();
-                            switch (command){
+                            switch (command) {
                                 case "quit":
                                     quit();
                                     watcher.interrupt();
                                     return;
-
                                 case "online":
-                                        getOnline();
+                                    getOnline();
                                     break;
+                                case "messages":
+                                    getMessages();
+                                    break;
+                                case "upload":
+                                    String fileName = command.split(" ")[1];
+                                    uploadFile(fileName, inetSocketAddress, name);
+                                    break;
+                                case "download":
+                                    String fileNameDownload = command.split(" ")[1];
+                                    downloadFile(fileNameDownload, inetSocketAddress, name);
                                 default:
                                     String message = name + ": " + command;
-                                    if(!message.equals(name+": ")) {
+                                    if (!message.equals(name + ": ")) {
                                         //System.out.print(message);
                                         sendMessage(message);
                                     }
@@ -62,6 +70,8 @@ public class Client {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
+                    }catch (ArrayIndexOutOfBoundsException e) {
+                        System.out.println("Missed some parameters.");
                     }
                 }
 
@@ -75,27 +85,85 @@ public class Client {
         }
 
     }
-    public void sendMessage(String message){
+
+    /**
+     * Start file download process
+     *
+     * @param fileName          name of file to download
+     * @param inetSocketAddress server address
+     * @param name              name of user, who want to download file
+     */
+    public void downloadFile(String fileName, InetSocketAddress inetSocketAddress, String name) {
+        Thread fileDownloadThread = new Thread(new FileDownload(fileName, inetSocketAddress, name));
+        fileDownloadThread.start();
+    }
+
+    /**
+     * Start file upload process
+     *
+     * @param fileName          name of file to upload
+     * @param inetSocketAddress server address
+     * @param name              name of user, who want to upload file
+     */
+    public void uploadFile(String fileName, InetSocketAddress inetSocketAddress, String name) {
+        Thread fileUploadThread = new Thread(new FileUpload(fileName, inetSocketAddress, name));
+        fileUploadThread.start();
+    }
+
+    /**
+     * Get all messages
+     */
+    public void getMessages() {
+        send(7);
+    }
+
+    /**
+     * Send message to server
+     *
+     * @param message message
+     */
+    public void sendMessage(String message) {
         send(3, message.length(), message.getBytes());
     }
 
-    public void introduce(){
+    /**
+     * Inform serer about client's existence
+     */
+    public void introduce() {
         send(1, name.length(), name.getBytes());
     }
 
-    public void quit(){
+    /**
+     * Stop session
+     */
+    public void quit() {
         send(5);
     }
 
-    private void getOnline(){
+    /**
+     * Get information about online users
+     */
+    private void getOnline() {
         send(6);
     }
 
-    public void send(int command){
+    /**
+     * Send client command to server
+     *
+     * @param command command
+     */
+    public void send(int command) {
         send(command, 0, new byte[0]);
     }
 
-    public void send (int command, int length, byte[] data){
+    /**
+     * Send command with parameters to server
+     *
+     * @param command command
+     * @param length  data length
+     * @param data    data
+     */
+    public void send(int command, int length, byte[] data) {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         buffer.putInt(command);
         buffer.putInt(length);
