@@ -38,7 +38,6 @@ public class FileDownload implements Runnable {
                     buffer.position(0);
                     int success = buffer.getInt();
                     if (success != 1) {
-                        System.out.println("rec mes");
                         System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
                         break;
                     } else {
@@ -55,14 +54,9 @@ public class FileDownload implements Runnable {
                                     ByteBuffer buffer1 = ByteBuffer.allocate(size);
                                     channel.read(buffer1);
 
-                                    try {
-                                        while (buffer1.position() < (buffer1.limit() - 1024)) {
-                                            channel.read(buffer1);
-                                        }
-                                    } catch (Exception e) {
-                                        System.out.println("ex: " + e);
+                                    while (buffer1.position() < (buffer1.limit() - 1024)) {
+                                        channel.read(buffer1);
                                     }
-
 
                                     buffer1.position(0);
                                     buffer1.get(input1);
@@ -81,25 +75,24 @@ public class FileDownload implements Runnable {
                                 System.out.println("File " + fileName + " was downloaded succesfully");
                                 break;
 
-                            } catch (IOException e) {
-                                System.out.println("e: " + e);
-                            } catch (Exception e) {
-                                System.out.println("e: " + e);
+                            }  catch (Exception e) {
+                                System.out.println("Something went wrong while reading file from channel: " + e);
                             }
                         }
                     }
 
                 } catch (IOException e) {
-                    System.out.println("e: " + e);
+                    System.out.println("Error occured while downloading file." + e.getMessage());
                     Thread.currentThread().interrupt();
+
                     return;
                 }
 
             }
 
-
         } catch (IOException e) {
-            System.out.println(e);
+            System.out.println("Error occured while openning channel for downloading file. " + e.getMessage());
+            e.printStackTrace();
         }
 
 

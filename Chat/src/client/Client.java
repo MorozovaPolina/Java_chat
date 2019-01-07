@@ -28,7 +28,6 @@ public class Client {
                     break;
                 }
             try {
-
                 InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), PORT);
                 channel = SocketChannel.open(inetSocketAddress);
                 Thread watcher = new Thread(new Watcher(channel));
@@ -53,7 +52,6 @@ public class Client {
                                     break;
                                 case "upload":
                                     String fileName = command.split(" ")[1];
-                                    System.out.println("-");
                                     uploadFile(fileName, inetSocketAddress, name);
                                     break;
                                 case "download":
@@ -62,7 +60,6 @@ public class Client {
                                 default:
                                     String message = name + ": " + command;
                                     if (!message.equals(name + ": ")) {
-                                        //System.out.print(message);
                                         sendMessage(message);
                                     }
                                     break;
@@ -70,17 +67,13 @@ public class Client {
                             }
 
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }catch (ArrayIndexOutOfBoundsException e) {
+                    } catch (ArrayIndexOutOfBoundsException e) {
                         System.out.println("Missed some parameters.");
                     }
                 }
 
             } catch (UnknownHostException e) {
                 System.out.println("Хост не найден");
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         } catch (IOException e) {
             e.printStackTrace();

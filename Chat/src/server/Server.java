@@ -147,24 +147,12 @@ public class Server {
                 ByteBuffer buffer1 = ByteBuffer.allocate(size);
                 client.read(buffer1);
 
-                ByteBuffer buffer2 = ByteBuffer.allocate(size);
-                ByteBuffer[] buf_arr = new ByteBuffer[2];
-                buf_arr[0] = ByteBuffer.allocate(100000);
-                buf_arr[1] = ByteBuffer.allocate(100000);
-
-//                System.out.println(buffer1.position()+" "+buffer1.limit()+" "+(buffer1.position() < buffer1.limit()));
-
-                while (buffer1.position() < (buffer1.limit()-1024)){
-//                    System.out.println(size+" "+buffer1.position()+" "+buffer1.limit());
-//                    client.read(buf_arr,0,2);
+                while (buffer1.position() < (buffer1.limit() - 1024)) {
                     client.read(buffer1);
-//                    client.read(buffer1);
                 }
-
 
                 buffer1.position(0);
                 buffer1.get(input1);
-
 
                 System.arraycopy(input, 0, full_input, 0, input.length);
                 System.arraycopy(input1, 0, full_input, input.length, size - input.length);
@@ -173,7 +161,6 @@ public class Server {
                 System.arraycopy(input, 0, full_input, 0, size);
             }
 
-
             try {
                 System.out.println("Writes file " + fileName);
                 Files.write(Paths.get(SERVER_PACKAGE + "/" + fileName), full_input);
@@ -181,14 +168,12 @@ public class Server {
                 broadcast("Uploaded file " + fileName);
                 messages.add("Uploaded file " + fileName);
             } catch (Exception e) {
-                System.out.println("e: " + e);
+                System.out.println("Problems occured while writing file to server package: " + e);
             }
 
 
-        } catch (IOException e) {
-            System.out.println("e: "+e);
         } catch (Exception e) {
-            System.out.println("e: "+e);
+            System.out.println("Some problems while getting file from client: " + e);
         }
 
 
@@ -242,7 +227,6 @@ public class Server {
             message = "Could not find file " + fileName;
         }
         if (!message.isEmpty()) {
-            System.out.println("sent mes");
             sendMessage(key, message);
         }
 
@@ -267,7 +251,7 @@ public class Server {
     /**
      * Функция для отключения пользователя
      *
-     * @param key    key for client chanel identification
+     * @param key key for client chanel identification
      */
     private void processQuit(SelectionKey key) {
         String name = connectedClients.get(((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
@@ -288,7 +272,7 @@ public class Server {
     /**
      * Функция для получения информации о пользователях, которые сейчас онлайн
      *
-     * @param key    key for client chanel identification
+     * @param key key for client chanel identification
      */
     public void getOnlineClients(SelectionKey key) {
         StringBuffer message = new StringBuffer("Online: ");
