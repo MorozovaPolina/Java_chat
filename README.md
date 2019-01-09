@@ -1,13 +1,24 @@
 # Java_chat
 
 Создание javadoc
+
+```
 javadoc -d docs src/client/*.java
 javadoc -d docs src/server/*.java
+```
 
-javac -d bin src/server/Server.java
+Создание jar
 
-javac -sourcepath ./src -d bin src/client/Client.java
-jar cfm server.jar bin/server/META-INF/MANIFEST.MF -C bin/server .
+```
+javac src/server/Server.java
+jar cvfe server.jar server.Server server/*.class
+```
+
+```
+javac src/client/*.java
+jar cvfe client.jar client.Client client/*.class
+```
+
 
 Для использования приложения необходимо запустить сервер и как минимум один клиент.
 На клиенте можно ввести команды:
