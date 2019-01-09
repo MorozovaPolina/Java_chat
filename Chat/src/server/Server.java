@@ -92,7 +92,7 @@ public class Server {
         System.out.println("buffer position " + buffer.position());
         buffer.position(0);
         int command = buffer.getInt();
-        System.out.println("Команда " + command);
+        System.out.println("Command " + command);
         switch (command) {
             case 1:
                 processIntroduction(buffer, key);
@@ -163,6 +163,9 @@ public class Server {
 
             try {
                 System.out.println("Writes file " + fileName);
+                if (!Files.exists(Paths.get(SERVER_PACKAGE ))){
+                    Files.createDirectory(Paths.get(SERVER_PACKAGE));
+                }
                 Files.write(Paths.get(SERVER_PACKAGE + "/" + fileName), full_input);
 
                 broadcast("Uploaded file " + fileName);
@@ -244,7 +247,7 @@ public class Server {
         buffer.get(input);
         String message = new String(input);
         connectedClients.put(((SocketChannel) key.channel()).socket().getRemoteSocketAddress(), message);
-        broadcast(key, "Подключился пользователь " + message);
+        broadcast(key, "User " + message+" has connected");
         sendMessageHistory(key);
     }
 
@@ -263,7 +266,7 @@ public class Server {
             } catch (IOException e) {
                 e.getMessage();
             }
-            broadcast("Пользователь " + name + " отключился");
+            broadcast("User " + name + " disconnected");
 
 
         }

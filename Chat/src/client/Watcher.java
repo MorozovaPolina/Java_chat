@@ -18,9 +18,12 @@ public class Watcher implements Runnable {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 channel.read(buffer);
-                System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
-                buffer.clear();
-                Arrays.fill(buffer.array(), (byte) 0);
+                if (buffer.position()>0){
+                    System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
+                    buffer.clear();
+                    Arrays.fill(buffer.array(), (byte) 0);
+                }
+
             }
             catch (IOException e) {
                 Thread.currentThread().interrupt();

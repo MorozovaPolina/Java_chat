@@ -71,7 +71,7 @@ public class FileDownload implements Runnable {
                                 if (!Files.exists(Paths.get(userName + "/"))) {
                                     Files.createDirectory(Paths.get(userName + "/"));
                                 }
-                                Files.write(Paths.get(userName + "/" + fileName), full_input);
+                                Files.write(Paths.get(fileName), full_input);
                                 System.out.println("File " + fileName + " was downloaded succesfully");
                                 break;
 

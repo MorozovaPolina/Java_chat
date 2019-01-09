@@ -28,7 +28,7 @@ public class FileUpload implements Runnable {
     @Override
     public void run() {
         System.out.println("Start uploading file " + fileName);
-        Path file = Paths.get(userName + "/" + fileName);
+        Path file = Paths.get(fileName);
         if (Files.exists(file)) {
             try (InputStream inputStream = Files.newInputStream(file)) {
                 byte[] fileBytes = inputStream.readAllBytes();

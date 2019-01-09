@@ -19,12 +19,12 @@ public class Client {
     }
 
     public void run() {
-        System.out.println("Привет, пользователь! Представься, пожалуйста.");
+        System.out.println("Hello, user! Please, introduce yourself.");
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in))) {
             while (true)
                 if (bufferedReader.ready()) {
                     name = bufferedReader.readLine();
-                    System.out.println("Привет, " + name + "!");
+                    System.out.println("Hello, " + name + "!");
                     break;
                 }
             try {
@@ -73,7 +73,7 @@ public class Client {
                 }
 
             } catch (UnknownHostException e) {
-                System.out.println("Хост не найден");
+                System.out.println("Host is not found");
             }
         } catch (IOException e) {
             e.printStackTrace();
