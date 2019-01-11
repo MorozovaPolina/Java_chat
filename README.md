@@ -4,8 +4,7 @@
 Создание javadoc
 
 ```
-javadoc -d docs src/client/*.java
-javadoc -d docs src/server/*.java
+javadoc -d docs src/client/*.java src/server/*.java
 ```
 
 Создание jar
