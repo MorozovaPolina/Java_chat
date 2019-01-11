@@ -2,10 +2,7 @@ package server;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -213,8 +210,9 @@ public class Server {
 
                     if (key.isValid() && key.channel() instanceof SocketChannel) {
                         SocketChannel channel = (SocketChannel) key.channel();
-
+                        channel.setOption(StandardSocketOptions.SO_SNDBUF, 2*fileBytes.length);
                         channel.write(bufferToSend);
+                        System.out.println();
                     }
                     buffer.clear();
 
