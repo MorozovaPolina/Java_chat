@@ -70,6 +70,7 @@ public class Server {
                         }
                         catch (IOException e){
                             System.out.println("Error while trying to get information from the client");
+                            processQuit(key);
                         }
                     }
 
