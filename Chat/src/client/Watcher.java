@@ -20,10 +20,15 @@ public class Watcher implements Runnable {
         int BUFFER_SIZE = 1024;
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
         while (!Thread.currentThread().isInterrupted()) {
+
             try {
                 channel.read(buffer);
                 if (buffer.position()>0){
-                    System.out.println(new String(buffer.array(), StandardCharsets.UTF_8));
+                    buffer.position(0);
+                    int size = buffer.getInt();
+                    byte[] input = new byte[size * 2];
+                    buffer.get(input);
+                    System.out.println(new String(input));
                     buffer.clear();
                     Arrays.fill(buffer.array(), (byte) 0);
                 }
