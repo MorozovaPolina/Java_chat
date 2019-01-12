@@ -62,6 +62,7 @@ public class Server {
                         }
                         catch (IOException e){
                             System.out.println("Error while trying to connect to the client");
+                            processQuit(key);
                         }
                     }
                     if (key.isReadable()) {
@@ -332,6 +333,7 @@ public class Server {
      */
     public void sendMessage(SelectionKey key, String message) {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
+        buffer.putInt(message.length());
         buffer.put(message.getBytes());
         buffer.flip();
         if (key.isValid() && key.channel() instanceof SocketChannel) {
