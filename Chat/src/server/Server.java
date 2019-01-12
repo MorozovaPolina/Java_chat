@@ -18,6 +18,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * Server logic
+ * @author Polina Morozova
+ * @author Anastasiia Chernysheva
+ */
+
 public class Server {
 
     private static final int PORT = 1234;
@@ -50,46 +56,66 @@ public class Server {
                     SelectionKey key = (SelectionKey) iterator.next();
                     iterator.remove();
                     if (!key.isValid()) continue;
-                    if (key.isAcceptable()) accept(key);
-                    if (key.isReadable()) read(key);
-                    // if(key.isWritable()) readers.add(key);
+                    if (key.isAcceptable()) {
+                        try {
+                            accept(key);
+                        }
+                        catch (IOException e){
+                            System.out.println("Error while trying to connect to the client");
+                        }
+                    }
+                    if (key.isReadable()) {
+                        try {
+                            read(key);
+                        }
+                        catch (IOException e){
+                            System.out.println("Error while trying to get information from the client");
+                        }
+                    }
 
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
 
     }
 
-    private void accept(SelectionKey key) throws IOException {
+    /**
+     * Method accepts a client connection
+     * @param key client
+     * @throws IOException thrown if something went wrong during connection
+     */
+
+    public void accept(SelectionKey key) throws IOException {
         ServerSocketChannel server = (ServerSocketChannel) key.channel();
         SocketChannel client = server.accept();
         client.configureBlocking(false);
         Socket socket = client.socket();
         SocketAddress socketAddress = socket.getRemoteSocketAddress();
-        System.out.println("Подключено к " + socketAddress);
+        System.out.println("Connected to " + socketAddress);
         client.register(selector, SelectionKey.OP_READ);
     }
 
-    /*Функция для обработки команды, пришедшей от пользователя.
-     * Коды:
-     * 1 - передача информации о подключившемся пользователе
-     * 2 - загрузка файлов
-     * 3 - отправка сообщений
-     * 4 - выгрузка файлов
-     * 5 - завершение работы
-     * 6 - получение информации о клиентах онлайн*/
-    private void read(SelectionKey key) throws IOException {
+    /**
+     * Method to process the command from the client. Each command has a unique key.
+     * 1 - information about a client
+     * 2 - file uploading
+     * 3 - message sending
+     * 4 - file downloading
+     * 5 - exit
+     * 6 - getting information about clients
+     * @param key client key
+     * @throws IOException thrown if something went wrong during getting information from client
+     * */
+    public void read(SelectionKey key) throws IOException {
 
         SocketChannel client = (SocketChannel) key.channel();
         int BUFFER_SIZE = 1024;
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
         client.read(buffer);
-        System.out.println("buffer position " + buffer.position());
         buffer.position(0);
         int command = buffer.getInt();
-        System.out.println("Command " + command);
         switch (command) {
             case 1:
                 processIntroduction(buffer, key);
@@ -115,16 +141,15 @@ public class Server {
     }
 
     /**
-     * Get file from user
-     * Method read file, which is uploaded by user and writes it to local server package.
+     * Gets file from user
+     * Method reads file, which is uploaded by user and writes it to local server package.
      *
      * @param buffer command info from user
      * @param key    key for client chanel identification
      */
-    private void getFile(ByteBuffer buffer, SelectionKey key) {
+    public void getFile(ByteBuffer buffer, SelectionKey key) {
         String fileName = "";
         try {
-            int sizeFull = buffer.getInt();
             int fileNameSize = buffer.getInt();
             byte[] fileNameInput = new byte[fileNameSize];
             buffer.get(fileNameInput);
@@ -168,7 +193,7 @@ public class Server {
                 broadcast("Uploaded file " + fileName);
                 messages.add("Uploaded file " + fileName);
             } catch (Exception e) {
-                System.out.println("Problems occured while writing file to server package: " + e);
+                System.out.println("Problems occurred while writing file to server package: " + e);
             }
 
 
@@ -180,14 +205,14 @@ public class Server {
     }
 
     /**
-     * Send file to client by key.
+     * Sends file to client by key.
      * Looks for fileName, get from user, in server package.
      * If there is no such file, generates message to user.
      *
      * @param buffer command from client
      * @param key    key for client chanel identification
      */
-    private void sendFile(ByteBuffer buffer, SelectionKey key) {
+    public void sendFile(ByteBuffer buffer, SelectionKey key) {
         int size = buffer.getInt();
         byte[] input = new byte[size];
         buffer.get(input);
@@ -234,12 +259,12 @@ public class Server {
     }
 
     /**
-     * Функция для предоставления информации о подключившемся пользователе
+     * This method allows server to get information about connected client's name.
      *
      * @param buffer command from client
      * @param key    key for client chanel identification
      */
-    private void processIntroduction(ByteBuffer buffer, SelectionKey key) {
+    public void processIntroduction(ByteBuffer buffer, SelectionKey key) {
         int size = buffer.getInt();
         byte[] input = new byte[size * 2];
         buffer.get(input);
@@ -250,11 +275,11 @@ public class Server {
     }
 
     /**
-     * Функция для отключения пользователя
+     * This method allows to disconnect a client
      *
      * @param key key for client chanel identification
      */
-    private void processQuit(SelectionKey key) {
+    public void processQuit(SelectionKey key) {
         String name = connectedClients.get(((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
         if (name != null) {
             connectedClients.remove(((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
@@ -271,7 +296,7 @@ public class Server {
     }
 
     /**
-     * Функция для получения информации о пользователях, которые сейчас онлайн
+     * This method provides with the information about connected clients
      *
      * @param key key for client chanel identification
      */
@@ -285,7 +310,7 @@ public class Server {
     }
 
     /**
-     * Функция для получения сообщения от пользователя
+     * This method processes clients' text messages
      *
      * @param buffer command from client
      * @param key    key for client chanel identification
@@ -299,8 +324,12 @@ public class Server {
         broadcast(key, message);
     }
 
-    /*Функция для отправки сообщения пользователю*/
-    private void sendMessage(SelectionKey key, String message) {
+    /**
+     * Method for sending a message to the client
+     * @param key client
+     * @param message text message
+     */
+    public void sendMessage(SelectionKey key, String message) {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         buffer.put(message.getBytes());
         buffer.flip();
@@ -315,16 +344,23 @@ public class Server {
         buffer.clear();
     }
 
-    /*broadcast используется для передачи сообщения всем клиентам*/
-    private void broadcast(String message) {
+    /**
+     * Method for broadcast message sending
+     * @param message message
+     */
+    public void broadcast(String message) {
         System.out.println(message);
         for (SelectionKey key : selector.keys()) {
             sendMessage(key, message);
         }
     }
 
-    /*broadcast используется для передачи сообщения всем клиентам, кроме источника сообщения*/
-    private void broadcast(SelectionKey source, String message) {
+    /**
+     * Method for sending a message to all connected users except the message source
+     * @param source client who sent the message
+     * @param message message
+     */
+    public  void broadcast(SelectionKey source, String message) {
         System.out.println(message);
         for (SelectionKey key : selector.keys()) {
             if (!source.channel().equals(key.channel()))
@@ -332,8 +368,11 @@ public class Server {
         }
     }
 
-    /*функция для отправки всех истории сообщений пользователю*/
-    private void sendMessageHistory(SelectionKey key) {
+    /**
+     * Method for message history sending to a client
+     * @param key client
+     */
+    public  void sendMessageHistory(SelectionKey key) {
         for (String message : messages) sendMessage(key, message);
     }
 

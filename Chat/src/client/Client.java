@@ -9,7 +9,13 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+/**
+ * Client main thread that processes user's commands
+ * @author Polina Morozova
+ * @author Anastasiia Chernysheva
+ */
 public class Client {
+
     private static final int PORT = 1234;
     private SocketChannel channel;
     private String name;
@@ -138,7 +144,7 @@ public class Client {
     /**
      * Get information about online users
      */
-    private void getOnline() {
+    public void getOnline() {
         send(6);
     }
 

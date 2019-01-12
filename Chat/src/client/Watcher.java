@@ -6,6 +6,10 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+/**
+ * Thread that waits for messages from server
+ * @author Polina Morozova
+ */
 public class Watcher implements Runnable {
     SocketChannel channel;
     public Watcher(SocketChannel channel){

@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 
 /**
  * Thread for uploading file by client
+ * @author Anastasiia Chernysheva
  */
 public class FileUpload implements Runnable {
     String fileName;
@@ -41,7 +42,6 @@ public class FileUpload implements Runnable {
                 System.arraycopy(ByteBuffer.allocate(4).putInt(fileBytes.length).array(), 0, output, 4 + fileName.length(), 4);
                 System.arraycopy(fileBytes, 0, output, 4 + fileName.length() + 4, fileBytes.length);
                 send(output.length, output);
-                //                send(2, fileBytes.length, fileBytes);
                 System.out.println("File " + fileName + " is uploaded succesfully");
             } catch (IOException e) {
                 System.out.println("Some problems while uploading file");

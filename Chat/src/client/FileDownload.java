@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 
 /**
  * Thread for downloading file by client
+ * @author Anastasiia Chernysheva
  */
 public class FileDownload implements Runnable {
     String fileName;
