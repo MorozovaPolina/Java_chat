@@ -120,32 +120,32 @@ public class Server {
         client.read(buffer);
         buffer.position(0);
         int commandInteger = buffer.getInt();
-        try {
-            Command command = Command.getCommand(commandInteger);
-            switch (command) {
-                case INTRODUCE:
-                    processIntroduction(buffer, key);
-                    break;
-                case UPLOAD_FILE:
-                    getFile(buffer, key);
-                    break;
-                case MESSAGE:
-                    getMessage(buffer, key);
-                    break;
-                case DOWNLOAD_FILE:
-                    sendFile(buffer, key);
-                    break;
-                case QUIT:
-                    processQuit(key);
-                    break;
-                case GET_ONLINE:
-                    getOnlineClients(key);
-                    break;
-                case MESSAGE_HISTORY:
-                    sendMessageHistory(key);
-            }
-        } catch (CommandNotFoundException e) {
-            System.err.println(e.getMessage());
+
+        Command command = Command.getById(commandInteger);
+        switch (command) {
+            case INTRODUCE:
+                processIntroduction(buffer, key);
+                break;
+            case UPLOAD_FILE:
+                getFile(buffer, key);
+                break;
+            case MESSAGE:
+                getMessage(buffer, key);
+                break;
+            case DOWNLOAD_FILE:
+                sendFile(buffer, key);
+                break;
+            case QUIT:
+                processQuit(key);
+                break;
+            case GET_ONLINE:
+                getOnlineClients(key);
+                break;
+            case MESSAGE_HISTORY:
+                sendMessageHistory(key);
+                break;
+            default:
+                throw new AssertionError("Unsupported command " + command);
         }
 
     }

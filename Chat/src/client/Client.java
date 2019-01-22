@@ -117,8 +117,8 @@ public class Client {
     /**
      * Get all messages
      */
-    public void getMessages() throws IOException{
-        send(Command.MESSAGE_HISTORY.getType());
+    public void getMessages() throws IOException {
+        send(Command.MESSAGE_HISTORY);
     }
 
     /**
@@ -126,29 +126,29 @@ public class Client {
      *
      * @param message message
      */
-    public void sendMessage(String message) throws IOException{
-        SendData.send(channel, Command.MESSAGE.getType(), message.length(), message.getBytes());
+    public void sendMessage(String message) throws IOException {
+        SendData.send(channel, Command.MESSAGE, message.length(), message.getBytes());
     }
 
     /**
      * Inform serer about client's existence
      */
     public void introduce() throws IOException {
-        SendData.send(channel, Command.INTRODUCE.getType(), name.length(), name.getBytes());
+        SendData.send(channel, Command.INTRODUCE, name.length(), name.getBytes());
     }
 
     /**
      * Stop session
      */
-    public void quit() throws IOException{
-        send(Command.QUIT.getType());
+    public void quit() throws IOException {
+        send(Command.QUIT);
     }
 
     /**
      * Get information about online users
      */
-    public void getOnline()throws IOException {
-        send(Command.GET_ONLINE.getType());
+    public void getOnline() throws IOException {
+        send(Command.GET_ONLINE);
     }
 
     /**
@@ -156,7 +156,7 @@ public class Client {
      *
      * @param command command
      */
-    public void send(int command) throws IOException {
+    public void send(Command command) throws IOException {
         SendData.send(channel, command, 0, new byte[0]);
     }
 
