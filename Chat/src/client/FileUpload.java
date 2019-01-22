@@ -1,5 +1,7 @@
 package client;
 
+import common.Command;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -41,8 +43,9 @@ public class FileUpload implements Runnable {
                 System.arraycopy(fileName.getBytes(), 0, output, 4, fileName.length());
                 System.arraycopy(ByteBuffer.allocate(4).putInt(fileBytes.length).array(), 0, output, 4 + fileName.length(), 4);
                 System.arraycopy(fileBytes, 0, output, 4 + fileName.length() + 4, fileBytes.length);
-                send(output.length, output);
+                SendData.send(channel, Command.UPLOAD_FILE.getType(), output.length, output);
                 System.out.println("File " + fileName + " is uploaded succesfully");
+                SendData.send(channel, Command.QUIT.getType(),0,new byte[0]);
             } catch (IOException e) {
                 System.out.println("Some problems while uploading file");
                 Thread.currentThread().interrupt();
@@ -54,24 +57,5 @@ public class FileUpload implements Runnable {
 
     }
 
-    /**
-     * Send request to upload file to server
-     *
-     * @param length file length
-     * @param data   file
-     */
-    public void send(int length, byte[] data) {
-        ByteBuffer buffer = ByteBuffer.allocate(2 * length);
-        buffer.putInt(2);
-        buffer.putInt(length);
-        buffer.put(data);
-        buffer.flip();
-        try {
-            channel.write(buffer);
-        } catch (IOException e) {
-            e.getMessage();
-        }
-        buffer.clear();
 
-    }
 }

@@ -1,5 +1,7 @@
 package client;
 
+import common.Command;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +13,7 @@ import java.nio.channels.SocketChannel;
 
 /**
  * Client main thread that processes user's commands
+ *
  * @author Polina Morozova
  * @author Anastasiia Chernysheva
  */
@@ -114,8 +117,8 @@ public class Client {
     /**
      * Get all messages
      */
-    public void getMessages() {
-        send(7);
+    public void getMessages() throws IOException{
+        send(Command.MESSAGE_HISTORY.getType());
     }
 
     /**
@@ -123,29 +126,29 @@ public class Client {
      *
      * @param message message
      */
-    public void sendMessage(String message) {
-        send(3, message.length(), message.getBytes());
+    public void sendMessage(String message) throws IOException{
+        SendData.send(channel, Command.MESSAGE.getType(), message.length(), message.getBytes());
     }
 
     /**
      * Inform serer about client's existence
      */
-    public void introduce() {
-        send(1, name.length(), name.getBytes());
+    public void introduce() throws IOException {
+        SendData.send(channel, Command.INTRODUCE.getType(), name.length(), name.getBytes());
     }
 
     /**
      * Stop session
      */
-    public void quit() {
-        send(5);
+    public void quit() throws IOException{
+        send(Command.QUIT.getType());
     }
 
     /**
      * Get information about online users
      */
-    public void getOnline() {
-        send(6);
+    public void getOnline()throws IOException {
+        send(Command.GET_ONLINE.getType());
     }
 
     /**
@@ -153,29 +156,9 @@ public class Client {
      *
      * @param command command
      */
-    public void send(int command) {
-        send(command, 0, new byte[0]);
+    public void send(int command) throws IOException {
+        SendData.send(channel, command, 0, new byte[0]);
     }
 
-    /**
-     * Send command with parameters to server
-     *
-     * @param command command
-     * @param length  data length
-     * @param data    data
-     */
-    public void send(int command, int length, byte[] data) {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        buffer.putInt(command);
-        buffer.putInt(length);
-        buffer.put(data);
-        buffer.flip();
-        try {
-            channel.write(buffer);
-        } catch (IOException e) {
-            e.getMessage();
-        }
-        buffer.clear();
 
-    }
 }

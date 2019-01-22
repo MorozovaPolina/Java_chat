@@ -1,5 +1,9 @@
 package server;
 
+import common.Command;
+import common.CommandNotFoundException;
+import common.FileReader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
@@ -13,13 +17,11 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Server logic
+ *
  * @author Polina Morozova
  * @author Anastasiia Chernysheva
  */
@@ -59,8 +61,7 @@ public class Server {
                     if (key.isAcceptable()) {
                         try {
                             accept(key);
-                        }
-                        catch (IOException e){
+                        } catch (IOException e) {
                             System.out.println("Error while trying to connect to the client");
                             processQuit(key);
                         }
@@ -68,8 +69,7 @@ public class Server {
                     if (key.isReadable()) {
                         try {
                             read(key);
-                        }
-                        catch (IOException e){
+                        } catch (IOException e) {
                             System.out.println("Error while trying to get information from the client");
                             processQuit(key);
                         }
@@ -85,6 +85,7 @@ public class Server {
 
     /**
      * Method accepts a client connection
+     *
      * @param key client
      * @throws IOException thrown if something went wrong during connection
      */
@@ -107,9 +108,10 @@ public class Server {
      * 4 - file downloading
      * 5 - exit
      * 6 - getting information about clients
+     *
      * @param key client key
      * @throws IOException thrown if something went wrong during getting information from client
-     * */
+     */
     public void read(SelectionKey key) throws IOException {
 
         SocketChannel client = (SocketChannel) key.channel();
@@ -117,29 +119,35 @@ public class Server {
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
         client.read(buffer);
         buffer.position(0);
-        int command = buffer.getInt();
-        switch (command) {
-            case 1:
-                processIntroduction(buffer, key);
-                break;
-            case 2:
-                getFile(buffer, key);
-                break;
-            case 3:
-                getMessage(buffer, key);
-                break;
-            case 4:
-                sendFile(buffer, key);
-                break;
-            case 5:
-                processQuit(key);
-                break;
-            case 6:
-                getOnlineClients(key);
-                break;
-            case 7:
-                sendMessageHistory(key);
+        int commandInteger = buffer.getInt();
+        try {
+            Command command = Command.getCommand(commandInteger);
+            switch (command) {
+                case INTRODUCE:
+                    processIntroduction(buffer, key);
+                    break;
+                case UPLOAD_FILE:
+                    getFile(buffer, key);
+                    break;
+                case MESSAGE:
+                    getMessage(buffer, key);
+                    break;
+                case DOWNLOAD_FILE:
+                    sendFile(buffer, key);
+                    break;
+                case QUIT:
+                    processQuit(key);
+                    break;
+                case GET_ONLINE:
+                    getOnlineClients(key);
+                    break;
+                case MESSAGE_HISTORY:
+                    sendMessageHistory(key);
+            }
+        } catch (CommandNotFoundException e) {
+            System.err.println(e.getMessage());
         }
+
     }
 
     /**
@@ -152,6 +160,10 @@ public class Server {
     public void getFile(ByteBuffer buffer, SelectionKey key) {
         String fileName = "";
         try {
+
+            // skip full buffer size
+            buffer.getInt();
+
             int fileNameSize = buffer.getInt();
             byte[] fileNameInput = new byte[fileNameSize];
             buffer.get(fileNameInput);
@@ -159,35 +171,24 @@ public class Server {
             int size = buffer.getInt();
 
             byte[] input = new byte[buffer.limit() - buffer.position()];
-            byte[] input1 = new byte[size];
-
-            byte[] full_input = new byte[size];
+            byte[] full_input;
 
             buffer.get(input);
 
-
             if (size > 1024) {
                 SocketChannel client = (SocketChannel) key.channel();
-                ByteBuffer buffer1 = ByteBuffer.allocate(size);
-                client.read(buffer1);
+                byte[] input1 = FileReader.readFile(client, size);
 
-                while (buffer1.position() < (buffer1.limit() - 1024)) {
-                    client.read(buffer1);
-                }
-
-                buffer1.position(0);
-                buffer1.get(input1);
-
-                System.arraycopy(input, 0, full_input, 0, input.length);
-                System.arraycopy(input1, 0, full_input, input.length, size - input.length);
+                full_input = FileReader.concatByteArrays(input, input1, size);
 
             } else {
+                full_input = new byte[size];
                 System.arraycopy(input, 0, full_input, 0, size);
             }
 
             try {
                 System.out.println("Writes file " + fileName);
-                if (!Files.exists(Paths.get(SERVER_PACKAGE ))){
+                if (!Files.exists(Paths.get(SERVER_PACKAGE))) {
                     Files.createDirectory(Paths.get(SERVER_PACKAGE));
                 }
                 Files.write(Paths.get(SERVER_PACKAGE + "/" + fileName), full_input);
@@ -237,7 +238,7 @@ public class Server {
 
                     if (key.isValid() && key.channel() instanceof SocketChannel) {
                         SocketChannel channel = (SocketChannel) key.channel();
-                        channel.setOption(StandardSocketOptions.SO_SNDBUF, 2*fileBytes.length);
+                        channel.setOption(StandardSocketOptions.SO_SNDBUF, 2 * fileBytes.length);
                         channel.write(bufferToSend);
                         System.out.println();
                     }
@@ -267,12 +268,10 @@ public class Server {
      * @param key    key for client chanel identification
      */
     public void processIntroduction(ByteBuffer buffer, SelectionKey key) {
-        int size = buffer.getInt();
-        byte[] input = new byte[size * 2];
-        buffer.get(input);
-        String message = new String(input);
+        String message = getMessage(buffer);
+
         connectedClients.put(((SocketChannel) key.channel()).socket().getRemoteSocketAddress(), message);
-        broadcast(key, "User " + message+" has connected");
+        broadcast(key, "User " + message + " has connected");
         sendMessageHistory(key);
     }
 
@@ -318,17 +317,15 @@ public class Server {
      * @param key    key for client chanel identification
      */
     public void getMessage(ByteBuffer buffer, SelectionKey key) {
-        int size = buffer.getInt();
-        byte[] input = new byte[size * 2];
-        buffer.get(input);
-        String message = new String(input);
+        String message = getMessage(buffer);
         messages.add(message);
         broadcast(key, message);
     }
 
     /**
      * Method for sending a message to the client
-     * @param key client
+     *
+     * @param key     client
      * @param message text message
      */
     public void sendMessage(SelectionKey key, String message) {
@@ -349,6 +346,7 @@ public class Server {
 
     /**
      * Method for broadcast message sending
+     *
      * @param message message
      */
     public void broadcast(String message) {
@@ -360,10 +358,11 @@ public class Server {
 
     /**
      * Method for sending a message to all connected users except the message source
-     * @param source client who sent the message
+     *
+     * @param source  client who sent the message
      * @param message message
      */
-    public  void broadcast(SelectionKey source, String message) {
+    public void broadcast(SelectionKey source, String message) {
         System.out.println(message);
         for (SelectionKey key : selector.keys()) {
             if (!source.channel().equals(key.channel()))
@@ -373,10 +372,18 @@ public class Server {
 
     /**
      * Method for message history sending to a client
+     *
      * @param key client
      */
-    public  void sendMessageHistory(SelectionKey key) {
+    public void sendMessageHistory(SelectionKey key) {
         for (String message : messages) sendMessage(key, message);
     }
 
+    private String getMessage(ByteBuffer buffer) {
+        int size = buffer.getInt();
+        byte[] input = new byte[size * 2];
+        buffer.get(input);
+        String message = new String(input);
+        return message;
+    }
 }

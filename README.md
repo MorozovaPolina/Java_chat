@@ -30,11 +30,13 @@ javadoc -d docs src/client/*.java src/server/*.java
 
 ```
 javac server/*.java
-jar cvfe server.jar server.Server server/*.class
+javac common/*.java
+jar cvfe server.jar server.Server server/*.class common/*.class
 ```
 
 Клиентская часть
 ```
 javac client/*.java
-jar cvfe client.jar client.Client client/*.class
+javac common/*.java
+jar cvfe client.jar client.Client client/*.class common/*.class
 ```
