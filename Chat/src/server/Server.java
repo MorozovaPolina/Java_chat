@@ -194,6 +194,13 @@ public class Server {
 
                 broadcast("Uploaded file " + fileName);
                 messages.add("Uploaded file " + fileName);
+
+                key.cancel();
+                try {
+                    key.channel().close();
+                } catch (IOException e) {
+                    System.err.println("Can not close channel");
+                }
             } catch (Exception e) {
                 System.out.println("Problems occurred while writing file to server package: " + e);
             }
@@ -244,6 +251,13 @@ public class Server {
                     buffer.clear();
 
                     System.out.println("File " + fileName + " is sent succesfully");
+
+                    key.cancel();
+                    try {
+                        key.channel().close();
+                    } catch (IOException e) {
+                        System.err.println("Can not close channel");
+                    }
                 } catch (IOException e) {
                     System.out.println("Some problems while sending file " + fileName);
                     message = "Could not send file " + fileName;
