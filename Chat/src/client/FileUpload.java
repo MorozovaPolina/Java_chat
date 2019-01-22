@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 
 /**
  * Thread for uploading file by client
+ *
  * @author Anastasiia Chernysheva
  */
 public class FileUpload implements Runnable {
@@ -43,9 +44,9 @@ public class FileUpload implements Runnable {
                 System.arraycopy(fileName.getBytes(), 0, output, 4, fileName.length());
                 System.arraycopy(ByteBuffer.allocate(4).putInt(fileBytes.length).array(), 0, output, 4 + fileName.length(), 4);
                 System.arraycopy(fileBytes, 0, output, 4 + fileName.length() + 4, fileBytes.length);
-                SendData.send(channel, Command.UPLOAD_FILE.getType(), output.length, output);
+                SendData.send(channel, Command.UPLOAD_FILE, output.length, output);
                 System.out.println("File " + fileName + " is uploaded succesfully");
-                SendData.send(channel, Command.QUIT.getType(),0,new byte[0]);
+
             } catch (IOException e) {
                 System.out.println("Some problems while uploading file");
                 Thread.currentThread().interrupt();

@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 
 /**
  * Thread for downloading file by client
+ *
  * @author Anastasiia Chernysheva
  */
 public class FileDownload implements Runnable {
@@ -32,7 +33,7 @@ public class FileDownload implements Runnable {
         System.out.println("Start downloading file " + fileName);
         try {
             channel = SocketChannel.open(inetSocketAddress);
-            SendData.send(channel, Command.DOWNLOAD_FILE.getType(), fileName.length(), fileName.getBytes());
+            SendData.send(channel, Command.DOWNLOAD_FILE, fileName.length(), fileName.getBytes());
 
             int BUFFER_SIZE = 1024;
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
@@ -70,7 +71,7 @@ public class FileDownload implements Runnable {
                                 System.out.println("File " + fileName + " was downloaded succesfully");
                                 break;
 
-                            }  catch (Exception e) {
+                            } catch (Exception e) {
                                 System.out.println("Something went wrong while reading file from channel: " + e);
                             }
                         }

@@ -1,5 +1,8 @@
 package common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum Command {
     INTRODUCE(1),
     UPLOAD_FILE(2),
@@ -9,23 +12,29 @@ public enum Command {
     GET_ONLINE(6),
     MESSAGE_HISTORY(7);
 
-    private final int type;
+    private static final Map<Integer, Command> commandById = new HashMap<Integer, Command>();
 
-    Command(final int type) {
-        this.type = type;
-    }
-
-    public int getType() {
-        return this.type;
-    }
-
-    public static Command getCommand(int type) throws CommandNotFoundException {
+    static {
         for (Command command : Command.values()) {
-            if (command.getType() == type) {
-                return command;
+            if (commandById.put(command.getId(), command) != null) {
+                throw new IllegalArgumentException("Duplicate id for enum Command value: " + command);
             }
         }
-        throw new CommandNotFoundException(type);
     }
+
+    private final int id;
+
+    Command(final int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return this.id;
+    }
+
+    public static Command getById(int id) {
+        return commandById.get(id);
+    }
+
 
 }
