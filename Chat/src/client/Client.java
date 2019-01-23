@@ -33,7 +33,7 @@ public class Client {
         System.out.println("Hello, user! Please, introduce yourself.");
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in))) {
             Scanner scanner = new Scanner(bufferedReader);
-            name = scanner.next();
+            name = scanner.nextLine();
             System.out.println("Hello, " + name + "!");
             try {
                 InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), PORT);
