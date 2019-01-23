@@ -20,7 +20,7 @@ JavaDoc можно найти в папке Chat/doc.
 Создание javadoc
 
 ```
-javadoc -d docs src/client/*.java src/server/*.java
+javadoc -d docs src/client/*.java src/server/*.java src/common/*.java
 ```
 
 Создание jar
