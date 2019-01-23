@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"client"},{"l":"server"}]
+packageSearchIndex = [{"l":"client"},{"l":"common"},{"l":"server"}]
