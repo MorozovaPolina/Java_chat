@@ -6,6 +6,7 @@ import common.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -31,7 +32,8 @@ public class Server {
     private Selector selector;
     private ArrayList<String> messages;
     private HashMap<SocketAddress, String> connectedClients;
-
+    private final int BUFFER_SIZE = 1024;
+    private final long WAITING_TIME=5;
     private static String SERVER_PACKAGE = "server";
 
     public static void main(String[] args) {
@@ -92,11 +94,12 @@ public class Server {
     public void accept(SelectionKey key) throws IOException {
         ServerSocketChannel server = (ServerSocketChannel) key.channel();
         SocketChannel client = server.accept();
+
         client.configureBlocking(false);
         Socket socket = client.socket();
         SocketAddress socketAddress = socket.getRemoteSocketAddress();
         System.out.println("Connected to " + socketAddress);
-        client.register(selector, SelectionKey.OP_READ);
+       client.register(selector, SelectionKey.OP_READ);
     }
 
     /**
@@ -114,7 +117,7 @@ public class Server {
     public void read(SelectionKey key) throws IOException {
 
         SocketChannel client = (SocketChannel) key.channel();
-        int BUFFER_SIZE = 1024;
+
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
         client.read(buffer);
         buffer.position(0);
@@ -174,7 +177,7 @@ public class Server {
 
             buffer.get(input);
 
-            if (size > 1024) {
+            if (size > BUFFER_SIZE) {
                 SocketChannel client = (SocketChannel) key.channel();
                 byte[] input1 = FileReader.readFile(client, size);
 
@@ -250,7 +253,7 @@ public class Server {
                     }
                     buffer.clear();
 
-                    System.out.println("File " + fileName + " is sent succesfully");
+                    System.out.println("File " + fileName + " is sent successfully");
 
                     key.cancel();
                     try {
@@ -298,6 +301,7 @@ public class Server {
         if (name != null) {
             connectedClients.remove(((SocketChannel) key.channel()).socket().getRemoteSocketAddress());
             key.cancel();
+
             try {
                 key.channel().close();
             } catch (IOException e) {
@@ -342,16 +346,20 @@ public class Server {
      * @param message text message
      */
     public void sendMessage(SelectionKey key, String message) {
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        buffer.putInt(message.length());
-        buffer.put(message.getBytes());
+        String messageToSend = message+"\n";
+        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+        buffer.putInt(messageToSend.length());
+        buffer.put(messageToSend.getBytes());
         buffer.flip();
-        if (key.isValid() && key.channel() instanceof SocketChannel) {
+        if (key.isValid() && key.channel()instanceof SocketChannel) {
             SocketChannel channel = (SocketChannel) key.channel();
             try {
-                channel.write(buffer);
+               channel.write(buffer);
+               System.out.println("Sending message \""+ message + "\" to "+channel.socket().getRemoteSocketAddress());
+               Thread.sleep(WAITING_TIME);
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Error while sending a message");
+            } catch (InterruptedException e) {
             }
         }
         buffer.clear();
@@ -389,19 +397,19 @@ public class Server {
      * @param key client
      */
     public void sendMessageHistory(SelectionKey key) {
-        StringBuilder messages = new StringBuilder();
-        for (String message : this.messages) {
-            messages.append(message);
-            messages.append("\n");
-        }
-        sendMessage(key, messages.toString());
+        for (String message : messages) sendMessage(key, message);
     }
 
     private String getMessage(ByteBuffer buffer) {
         int size = buffer.getInt();
-        byte[] input = new byte[size * 2];
-        buffer.get(input);
-        String message = new String(input);
-        return message;
+        byte[] input = new byte[size];
+        try {
+            buffer.get(input);
+            String message = new String(input);
+            return message;
+        }
+        catch (BufferUnderflowException bufferUnderflowException){
+            return "message is too long";
+        }
     }
 }

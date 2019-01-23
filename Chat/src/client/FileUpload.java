@@ -17,6 +17,7 @@ import java.nio.file.Paths;
  * @author Anastasiia Chernysheva
  */
 public class FileUpload implements Runnable {
+    private final int INT_SIZE = 4;
     String fileName;
     InetSocketAddress inetSocketAddress;
     SocketChannel channel;
@@ -38,12 +39,14 @@ public class FileUpload implements Runnable {
                 byte[] fileBytes = inputStream.readAllBytes();
                 System.out.println("size of file is " + fileBytes.length + " bytes");
                 channel = SocketChannel.open(inetSocketAddress);
-                byte[] output = new byte[fileBytes.length + 4 + fileName.length() + 4];
+                byte[] output = new byte[fileBytes.length + INT_SIZE + fileName.length() + INT_SIZE];
                 System.out.println(fileName.length());
-                System.arraycopy(ByteBuffer.allocate(4).putInt(fileName.length()).array(), 0, output, 0, 4);
-                System.arraycopy(fileName.getBytes(), 0, output, 4, fileName.length());
-                System.arraycopy(ByteBuffer.allocate(4).putInt(fileBytes.length).array(), 0, output, 4 + fileName.length(), 4);
-                System.arraycopy(fileBytes, 0, output, 4 + fileName.length() + 4, fileBytes.length);
+                System.arraycopy(ByteBuffer.allocate(INT_SIZE).
+                        putInt(fileName.length()).array(), 0, output, 0, INT_SIZE);
+                System.arraycopy(fileName.getBytes(), 0, output, INT_SIZE, fileName.length());
+                System.arraycopy(ByteBuffer.allocate(INT_SIZE).
+                        putInt(fileBytes.length).array(), 0, output, INT_SIZE + fileName.length(), INT_SIZE);
+                System.arraycopy(fileBytes, 0, output, INT_SIZE + fileName.length() + INT_SIZE, fileBytes.length);
                 SendData.send(channel, Command.UPLOAD_FILE, output.length, output);
                 System.out.println("File " + fileName + " is uploaded succesfully");
 

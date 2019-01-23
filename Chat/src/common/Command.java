@@ -2,7 +2,11 @@ package common;
 
 import java.util.HashMap;
 import java.util.Map;
-
+/**
+ * Command enumeration
+ *
+ * @author Anastasiia Chernysheva
+ */
 public enum Command {
     INTRODUCE(1),
     UPLOAD_FILE(2),

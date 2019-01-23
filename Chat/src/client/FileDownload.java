@@ -21,6 +21,8 @@ public class FileDownload implements Runnable {
     InetSocketAddress inetSocketAddress;
     SocketChannel channel;
     String userName;
+    private final int BUFFER_SIZE = 1024;
+    private final int INT_SIZE = 4;
 
     public FileDownload(String fileName, InetSocketAddress inetSocketAddress, String name) {
         this.fileName = fileName;
@@ -34,8 +36,6 @@ public class FileDownload implements Runnable {
         try {
             channel = SocketChannel.open(inetSocketAddress);
             SendData.send(channel, Command.DOWNLOAD_FILE, fileName.length(), fileName.getBytes());
-
-            int BUFFER_SIZE = 1024;
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -49,12 +49,12 @@ public class FileDownload implements Runnable {
                         int size = buffer.getInt();
                         if (size > 0) {
                             try {
-                                byte[] input = new byte[1024 - 8];
+                                byte[] input = new byte[BUFFER_SIZE- INT_SIZE*2];
 
                                 byte[] full_input = new byte[size];
                                 buffer.get(input);
 
-                                if (size > 1024) {
+                                if (size > BUFFER_SIZE) {
                                     byte[] input1 = FileReader.readFile(channel, size);
 
                                     System.arraycopy(input, 0, full_input, 0, input.length);

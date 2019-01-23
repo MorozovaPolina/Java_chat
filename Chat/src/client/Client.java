@@ -8,8 +8,9 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 /**
  * Client main thread that processes user's commands
@@ -20,6 +21,7 @@ import java.nio.channels.SocketChannel;
 public class Client {
 
     private static final int PORT = 1234;
+    private final int MAX_MESSAGE_SIZE=500;
     private SocketChannel channel;
     private String name;
 
@@ -30,12 +32,9 @@ public class Client {
     public void run() {
         System.out.println("Hello, user! Please, introduce yourself.");
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in))) {
-            while (true)
-                if (bufferedReader.ready()) {
-                    name = bufferedReader.readLine();
-                    System.out.println("Hello, " + name + "!");
-                    break;
-                }
+            Scanner scanner = new Scanner(bufferedReader);
+            name = scanner.next();
+            System.out.println("Hello, " + name + "!");
             try {
                 InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), PORT);
                 channel = SocketChannel.open(inetSocketAddress);
@@ -45,8 +44,7 @@ public class Client {
 
                 while (true) {
                     try {
-                        if (bufferedReader.ready()) {
-                            String command = bufferedReader.readLine();
+                            String command = scanner.next();
                             String commandType = command.split(" ")[0];
                             switch (commandType) {
                                 case "quit":
@@ -68,14 +66,13 @@ public class Client {
                                     downloadFile(fileNameDownload, inetSocketAddress, name);
                                 default:
                                     String message = name + ": " + command;
-                                    if (!message.equals(name + ": ")) {
+                                    if (!(name + ": ").equals(message)) {
                                         sendMessage(message);
                                     }
                                     break;
 
                             }
 
-                        }
                     } catch (ArrayIndexOutOfBoundsException e) {
                         System.out.println("Missed some parameters.");
                     }
@@ -85,7 +82,10 @@ public class Client {
                 System.out.println("Host is not found");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Unexpected error");
+        }
+        catch (NoSuchElementException e){
+
         }
 
     }
@@ -117,7 +117,7 @@ public class Client {
     /**
      * Get all messages
      */
-    public void getMessages() throws IOException {
+    public void getMessages() {
         send(Command.MESSAGE_HISTORY);
     }
 
@@ -126,28 +126,37 @@ public class Client {
      *
      * @param message message
      */
-    public void sendMessage(String message) throws IOException {
-        SendData.send(channel, Command.MESSAGE, message.length(), message.getBytes());
+    public void sendMessage(String message)  {
+        try {
+            if(message.length()>MAX_MESSAGE_SIZE)System.out.println("Message is too long.");
+            SendData.send(channel, Command.MESSAGE, message.length(), message.getBytes());
+        } catch (IOException e) {
+            System.out.println("Error while sending a message");
+        }
     }
 
     /**
      * Inform serer about client's existence
      */
-    public void introduce() throws IOException {
-        SendData.send(channel, Command.INTRODUCE, name.length(), name.getBytes());
+    public void introduce() {
+        try {
+            SendData.send(channel, Command.INTRODUCE, name.length(), name.getBytes());
+        } catch (IOException e) {
+            System.out.println("Error while introducing");
+        }
     }
 
     /**
      * Stop session
      */
-    public void quit() throws IOException {
+    public void quit() {
         send(Command.QUIT);
     }
 
     /**
      * Get information about online users
      */
-    public void getOnline() throws IOException {
+    public void getOnline(){
         send(Command.GET_ONLINE);
     }
 
@@ -156,8 +165,12 @@ public class Client {
      *
      * @param command command
      */
-    public void send(Command command) throws IOException {
-        SendData.send(channel, command, 0, new byte[0]);
+    public void send(Command command)  {
+        try {
+            SendData.send(channel, command, 0, new byte[0]);
+        } catch (IOException e) {
+            System.out.println("Error while sending data");
+        }
     }
 
 
