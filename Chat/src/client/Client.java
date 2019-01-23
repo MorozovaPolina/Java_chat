@@ -44,7 +44,7 @@ public class Client {
 
                 while (true) {
                     try {
-                            String command = scanner.next();
+                            String command = scanner.nextLine();
                             String commandType = command.split(" ")[0];
                             switch (commandType) {
                                 case "quit":
@@ -64,6 +64,7 @@ public class Client {
                                 case "download":
                                     String fileNameDownload = command.split(" ")[1];
                                     downloadFile(fileNameDownload, inetSocketAddress, name);
+                                    break;
                                 default:
                                     String message = name + ": " + command;
                                     if (!(name + ": ").equals(message)) {
