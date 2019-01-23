@@ -389,7 +389,12 @@ public class Server {
      * @param key client
      */
     public void sendMessageHistory(SelectionKey key) {
-        for (String message : messages) sendMessage(key, message);
+        StringBuilder messages = new StringBuilder();
+        for (String message : this.messages) {
+            messages.append(message);
+            messages.append("\n");
+        }
+        sendMessage(key, messages.toString());
     }
 
     private String getMessage(ByteBuffer buffer) {
